@@ -8,11 +8,12 @@
             [cider.nrepl :as cider]))
 
 (defn search-sf-for-sale [req]
-  (let [items  (-> (get (:query-params req) "terms" "")
-                   (str/split #","))]
-    (cl/query-cl {:query (str/join " " items)
-                  :section :for-sale
-                  :area "sfbay"})))
+  (let [items (-> (get (:query-params req) "terms" "")
+                  (str/split #","))
+        cl-maps (cl/query-cl {:query (str/join " " items)
+                              :section :for-sale
+                              :area "sfbay"})]
+    (json/encode {:items cl-maps})))
 
 (defroutes app-routes
   (GET "/" [] "Hello World")
