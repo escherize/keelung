@@ -15,10 +15,31 @@
                               :area "sfbay"})]
     (json/encode {:items cl-maps})))
 
+(defn allow-cross-origin
+  "middleware function to allow crosss origin"
+  [handler]
+  (fn [request]
+   (let [response (handler request)]
+    (assoc-in response [:headers "Access-Control-Allow-Origin"]
+         "*"))))
+
+(defn options-200
+  "middleware function to always 200 an OPTIONS request"
+  [handler]
+  (fn [request]
+    (if (= :options (:request-method request))
+      {:headers {"Access-Control-Allow-Origin" "*"
+                 "Access-Control-Allow-Methods" "GET, POST, PUT, OPTIONS"}
+       :body ""
+       :status 204}
+      (handler request))))
+
 (defroutes app-routes
   (GET "/" [] "Hello World")
   (GET "/search" [] #(search-sf-for-sale %))
   (route/not-found "Not Found"))
 
 (def app
-  (wrap-defaults app-routes site-defaults))
+  (-> (wrap-defaults app-routes site-defaults)
+      options-200
+      allow-cross-origin))
